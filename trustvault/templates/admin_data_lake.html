@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Data lake | TrustVault{% endblock %}
+{% block content %}
+<section class="page-heading"><div><p class="eyebrow">Administration</p><h1>Data lake</h1><p class="muted">Manage domains and inspect the secured document inventory.</p></div><a class="button button-primary" href="/documents/new">+ Upload document</a></section>
+<section class="admin-grid">
+  <form class="panel form-card" method="post" action="/admin/domains">
+    <h2>Create domain</h2><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Domain name<input name="name" required maxlength="80" placeholder="e.g. Finance"></label>
+    <label>Description<textarea name="description" maxlength="300" rows="3"></textarea></label>
+    <button class="button button-primary" type="submit">Add domain</button>
+  </form>
+  <section class="panel table-panel"><div class="table-heading"><div><h2>Domains</h2><p class="muted">{{ domains|length }} configured</p></div></div>
+    {% if domains %}<div class="table-scroll"><table><thead><tr><th>Domain</th><th>Description</th><th>Documents</th></tr></thead><tbody>
+      {% for domain in domains %}<tr><td colspan="3"><div class="domain-edit-row"><form method="post" action="/admin/domains/{{ domain.id }}" class="domain-edit-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input name="name" required maxlength="80" value="{{ domain.name }}" aria-label="Domain name">
+        <input name="description" maxlength="300" value="{{ domain.description }}" aria-label="Domain description">
+        <span>{{ domain.document_count }} documents</span>
+        <button class="button button-secondary" type="submit">Save</button>
+      </form>{% if domain.document_count == 0 %}<form method="post" action="/admin/domains/{{ domain.id }}/delete"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button button-danger-outline" type="submit">Delete</button></form>{% endif %}</div></td></tr>{% endfor %}
+    </tbody></table></div>{% else %}<p class="empty-inline">Create a domain before uploading documents.</p>{% endif %}
+  </section>
+</section>
+<section class="panel table-panel"><div class="table-heading"><div><h2>Document inventory</h2><p class="muted">Administrator access is explicit and audited.</p></div></div>
+  {% if documents %}<div class="table-scroll"><table><thead><tr><th>Document</th><th>Owner</th><th>Domain</th><th>Category</th><th>Updated</th><th>Manage</th></tr></thead><tbody>
+    {% for document in documents %}<tr><td><a href="/documents/{{ document.id }}">{{ document.name }}</a></td><td>{{ document.owner_email }}</td><td>{{ document.domain_name or "Unassigned" }}</td><td>{{ document.category }}</td><td>{{ document.updated_at[:10] }}</td><td><a class="button button-secondary" href="/documents/{{ document.id }}">Edit / access</a></td></tr>{% endfor %}
+  </tbody></table></div>{% else %}<p class="empty-inline">No documents uploaded yet.</p>{% endif %}
+</section>
+{% endblock %}

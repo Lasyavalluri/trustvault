@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}People | TrustVault{% endblock %}
+{% block content %}
+<section class="page-heading"><div><p class="eyebrow">Administration</p><h1>People</h1><p class="muted">Manage accounts and maintain the department metadata used by the access assistant.</p></div></section>
+<section class="admin-grid">
+  <form class="panel form-card" method="post" action="/admin/users">
+    <h2>Create account</h2>{% if error %}<p class="alert" role="alert">{{ error }}</p>{% endif %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Email address<input type="email" name="email" required maxlength="320"></label>
+    <label>Temporary password<input type="password" name="password" required minlength="12" autocomplete="new-password"><small>At least 12 characters. Share it securely and ask the person to change it.</small></label>
+    <label>Organization role<select name="role"><option value="viewer">Viewer</option><option value="owner">Document owner</option><option value="admin">Administrator</option></select></label>
+    <label>Department<input name="department" maxlength="100" placeholder="Must match a domain name for recommendations"></label>
+    <label>Job title<input name="job_title" maxlength="100" placeholder="Optional context"></label>
+    <button class="button button-primary" type="submit">Create account</button>
+  </form>
+  <section class="panel table-panel"><div class="table-heading"><div><h2>Accounts</h2><p class="muted">{{ users|length }} accounts</p></div></div>
+  <div class="table-scroll"><table><thead><tr><th>Account</th><th>Profile</th><th>Status</th><th>Action</th></tr></thead><tbody>
+    {% for account in users %}<tr><td>{{ account.email }}<br><span class="role-pill">{{ account.role }}</span></td><td>
+      <form method="post" action="/admin/users/{{ account.id }}/profile" class="profile-form"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input name="department" maxlength="100" value="{{ account.department }}" placeholder="Department">
+        <input name="job_title" maxlength="100" value="{{ account.job_title }}" placeholder="Job title">
+        <button class="button button-secondary" type="submit">Save profile</button>
+      </form>
+    </td><td>{% if account.active %}<span class="status-active">Active</span>{% else %}<span class="status-disabled">Disabled</span>{% endif %}</td><td>
+      {% if account.active and account.id != user.id %}<form method="post" action="/admin/users/{{ account.id }}/disable"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button button-danger-outline" type="submit">Disable</button></form>{% else %}<span class="muted">-</span>{% endif %}
+    </td></tr>{% endfor %}
+  </tbody></table></div></section>
+</section>
+{% endblock %}

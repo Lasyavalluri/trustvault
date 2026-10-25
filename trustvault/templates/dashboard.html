@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | TrustVault{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div><p class="eyebrow">Overview</p><h1>Dashboard</h1><p class="muted">Welcome back, {{ user.email }}. Here's your TrustVault workspace.</p></div>
+  {% if user.role in ["admin", "owner"] %}<a class="button button-primary" href="/documents/new">+ Upload document</a>{% endif %}
+</section>
+<section class="dashboard-stats">
+  <article class="panel stat-card"><span class="stat-icon">D</span><div><p class="muted">{% if is_admin %}Total documents{% else %}Available documents{% endif %}</p><strong>{{ counts.documents }}</strong></div><a href="/documents">View documents</a></article>
+  {% if is_admin %}
+  <article class="panel stat-card"><span class="stat-icon">L</span><div><p class="muted">Domains</p><strong>{{ counts.domains }}</strong></div><a href="/admin/data-lake">Manage domains</a></article>
+  <article class="panel stat-card"><span class="stat-icon">P</span><div><p class="muted">Active people</p><strong>{{ counts.people }}</strong></div><a href="/admin/users">Manage accounts</a></article>
+  <article class="panel stat-card"><span class="stat-icon">A</span><div><p class="muted">Active grants</p><strong>{{ counts.grants }}</strong></div><a href="/admin/audit">Review activity</a></article>
+  {% endif %}
+</section>
+<div class="dashboard-grid">
+  <section class="panel table-panel">
+    <div class="table-heading"><div><h2>{% if is_admin %}Recent activity{% else %}Recent documents{% endif %}</h2><p class="muted">{% if is_admin %}Latest audited actions across the workspace{% else %}Documents you are authorized to reach{% endif %}</p></div></div>
+    {% if recent %}
+      {% if is_admin %}
+      <div class="table-scroll"><table><thead><tr><th>Action</th><th>Actor</th><th>Result</th><th>When</th></tr></thead><tbody>
+        {% for event in recent %}<tr><td><a href="{% if event.document_id %}/documents/{{ event.document_id }}{% else %}/admin/audit{% endif %}">{{ event.action|replace("_", " ")|title }}</a></td><td>{{ event.actor_email or "System" }}</td><td><span class="outcome outcome-{{ event.outcome }}">{{ event.outcome }}</span></td><td>{{ event.occurred_at[:16] }}</td></tr>{% endfor %}
+      </tbody></table></div>
+      {% else %}
+      <div class="table-scroll"><table><thead><tr><th>Document</th><th>Owner</th><th>Domain</th><th>Updated</th></tr></thead><tbody>
+        {% for document in recent %}<tr><td><a href="/documents/{{ document.id }}">{{ document.name }}</a></td><td>{{ document.owner_email }}</td><td>{{ document.domain_name or "Unassigned" }}</td><td>{{ document.updated_at[:10] }}</td></tr>{% endfor %}
+      </tbody></table></div>
+      {% endif %}
+    {% else %}
+    <div class="empty-state"><h3>Nothing here yet</h3><p>{% if is_admin %}Activity will appear as the team uses TrustVault.{% else %}Ask a document owner to share a document with your account.{% endif %}</p></div>
+    {% endif %}
+  </section>
+  <aside class="dashboard-quick panel">
+    <p class="eyebrow">Quick access</p><h2>Go to</h2>
+    <a href="/documents"><span>Browse documents</span><strong>&gt;</strong></a>
+    {% if user.role in ["owner", "admin"] %}<a href="/documents/new"><span>Upload a document</span><strong>&gt;</strong></a>{% endif %}
+    {% if is_admin %}
+    <a href="/admin/agent-chat"><span>Manage access in agent chat</span><strong>&gt;</strong></a>
+    <a href="/admin/data-lake"><span>Manage domains and inventory</span><strong>&gt;</strong></a>
+    <a href="/admin/access-assistant"><span>Review access suggestions</span><strong>&gt;</strong></a>
+    <a href="/admin/audit"><span>Verify audit activity</span><strong>&gt;</strong></a>
+    {% endif %}
+    <div class="security-note"><strong>Access is checked each time</strong><p>Documents are private unless your account owns them, has an active grant, or is an administrator.</p></div>
+  </aside>
+</div>
+{% endblock %}

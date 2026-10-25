@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ document.name }} | TrustVault{% endblock %}
+{% block content %}
+<div class="back-link"><a href="/documents">&lt; Back to documents</a></div>
+{% if error %}<p class="alert" role="alert">{{ error }}</p>{% endif %}
+<section class="detail-heading">
+  <div class="file-icon file-icon-large">DOC</div>
+  <div class="detail-title"><p class="eyebrow">{{ document.domain_name or "Unassigned" }} / {{ document.category }}</p><h1>{{ document.name }}</h1><p class="muted">Owned by {{ document.owner_email }} &middot; Updated {{ document.updated_at[:10] }}</p></div>
+  <a class="button button-primary" href="/documents/{{ document.id }}/download">Download file</a>
+</section>
+<section class="detail-grid">
+  <div class="panel detail-card"><h2>Document details</h2>
+    <dl><div><dt>File type</dt><dd>{{ document.media_type }}</dd></div><div><dt>File size</dt><dd>{{ (document.size_bytes / 1024)|round(1) }} KB</dd></div><div><dt>Your access</dt><dd><span class="access-pill">{{ permission }}</span></dd></div><div><dt>Created</dt><dd>{{ document.created_at }}</dd></div></dl>
+    {% if document.summary %}<h3>Document summary</h3><p class="summary-text">{{ document.summary }}</p>{% endif %}
+  </div>
+  {% if permission in ["owner", "edit", "admin"] %}
+  <form class="panel detail-card" method="post" action="/documents/{{ document.id }}/edit">
+    <h2>Edit document details</h2><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Name<input name="name" required maxlength="180" value="{{ document.name }}"></label>
+    <label>Category<input name="category" required maxlength="80" value="{{ document.category }}"></label>
+    {% if permission == "admin" %}<label>Domain<select name="domain_id"><option value="">Keep current domain</option>{% for domain in domains %}<option value="{{ domain.id }}" {% if domain.id == document.domain_id %}selected{% endif %}>{{ domain.name }}</option>{% endfor %}</select></label>{% endif %}
+    {% if permission == "admin" %}<label>Owner<select name="owner_id"><option value="">Keep current owner</option>{% for owner in owners %}<option value="{{ owner.id }}" {% if owner.id == document.owner_id %}selected{% endif %}>{{ owner.email }}</option>{% endfor %}</select></label>{% endif %}
+    {% if permission == "admin" %}<label>Summary<textarea name="summary" maxlength="1200" rows="5">{{ document.summary }}</textarea><small>Administrator may update or clear the summary.</small></label>{% endif %}
+    <button class="button button-secondary" type="submit">Save changes</button>
+  </form>
+  <form class="panel detail-card" method="post" action="/documents/{{ document.id }}/content" enctype="multipart/form-data">
+    <h2>Replace file content</h2><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>New document file<input type="file" name="file" required accept=".pdf,.docx,.xlsx,.png,.jpg,.jpeg"><small>PDF, DOCX, XLSX, PNG, JPEG. Maximum 10 MB.</small></label>
+    <button class="button button-secondary" type="submit">Replace securely</button>
+  </form>
+  {% endif %}
+</section>
+{% if permission in ["owner", "admin"] %}
+<section class="panel access-panel">
+  <div class="table-heading"><div><p class="eyebrow">Document-level permissions</p><h2>People with access</h2><p class="muted">The owner and administrators can grant or revoke access.</p></div></div>
+  <form class="grant-form" method="post" action="/documents/{{ document.id }}/access">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Account email<input type="email" name="email" required placeholder="colleague@company.com"></label>
+    <label>Permission<select name="permission"><option value="read">Can view</option><option value="edit">Can edit</option></select></label>
+    <button class="button button-primary" type="submit">Grant access</button>
+  </form>
+  {% if grants %}
+  <div class="grant-list">{% for grant in grants %}
+    <div class="grant-row"><span class="avatar">{{ grant.email[:1]|upper }}</span><span class="grant-email">{{ grant.email }}</span><span class="access-pill">{{ grant.permission }}</span>
+      <form method="post" action="/documents/{{ document.id }}/access/{{ grant.user_id }}/revoke"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button button-danger-outline" type="submit">Revoke</button></form>
+    </div>
+  {% endfor %}</div>
+  {% else %}<p class="empty-inline">No one else has access to this document.</p>{% endif %}
+</section>
+<form class="delete-form" method="post" action="/documents/{{ document.id }}/delete">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <span><strong>Remove this document?</strong><small>It becomes unavailable immediately. Audit history is retained.</small></span>
+  <button class="button button-danger-outline" type="submit">Delete document</button>
+</form>
+{% endif %}
+{% endblock %}

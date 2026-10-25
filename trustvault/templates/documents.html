@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Documents | TrustVault{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Your secure workspace</p>
+    <h1>Documents</h1>
+    <p class="muted">Private by default. Shared one document at a time.</p>
+  </div>
+  {% if user.role in ["owner", "admin"] %}<a class="button button-primary" href="/documents/new">+ Upload document</a>{% endif %}
+</section>
+<form class="panel filters" method="get" action="/documents">
+  <label class="search-field">Search documents<input type="search" name="q" value="{{ filters.q }}" placeholder="Name contains..."></label>
+  <label>Category<input name="category" value="{{ filters.category }}" placeholder="e.g. Contracts"></label>
+  <label>Domain<input name="domain" value="{{ filters.domain }}" placeholder="e.g. Finance"></label>
+  <label>Owner email<input type="search" name="owner" value="{{ filters.owner }}" placeholder="name@company.com"></label>
+  <label>From<input type="date" name="from_date" value="{{ filters.from_date }}"></label>
+  <label>To<input type="date" name="to_date" value="{{ filters.to_date }}"></label>
+  <button class="button button-secondary" type="submit">Search</button>
+</form>
+<section class="panel table-panel">
+  <div class="table-heading"><div><h2>Available to you</h2><p class="muted">{{ documents|length }} document{% if documents|length != 1 %}s{% endif %} in your authorized view</p></div></div>
+  {% if documents %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Document</th><th>Owner</th><th>Category</th><th>Updated</th><th>Your access</th></tr></thead>
+    <tbody>{% for document in documents %}
+      <tr>
+        <td><a class="document-link" href="/documents/{{ document.id }}"><span class="file-icon">DOC</span><span>{{ document.name }}<small>{{ (document.size_bytes / 1024)|round(1) }} KB</small></span></a></td>
+        <td>{{ document.owner_email }}</td><td><span class="category-pill">{{ document.category }}</span><small>{{ document.domain_name or "Unassigned" }}</small></td>
+        <td>{{ document.updated_at[:10] }}</td><td><span class="access-pill">{{ document.access }}</span></td>
+      </tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}
+  <div class="empty-state"><span class="empty-icon">-</span><h3>No documents found</h3><p>Try adjusting your filters, or ask an owner to share a document with you.</p></div>
+  {% endif %}
+</section>
+{% endblock %}

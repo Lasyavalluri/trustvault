@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Sign in | TrustVault{% endblock %}
+{% block content %}
+<section class="auth-layout">
+  <div class="auth-copy">
+    <p class="eyebrow">Private document workspace</p>
+    <h1>Keep important files in trusted hands.</h1>
+    <p>Every document is private until its owner grants access. Every access decision leaves a record.</p>
+    <div class="trust-note"><span class="trust-icon">+</span><span>Document-level access<br><small>People see only what was shared with them.</small></span></div>
+    <div class="trust-note"><span class="trust-icon">+</span><span>Recorded activity<br><small>Downloads and permission changes are audited.</small></span></div>
+  </div>
+  <form class="panel auth-form" method="post" action="/login">
+    <p class="eyebrow">Welcome back</p>
+    <h2>Sign in to TrustVault</h2>
+    {% if error %}<p class="alert" role="alert">{{ error }}</p>{% endif %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Email address<input type="email" name="email" autocomplete="username" required maxlength="320"></label>
+    <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
+    <button class="button button-primary button-wide" type="submit">Sign in <span aria-hidden="true">-&gt;</span></button>
+    <p class="form-footnote">Access is managed by your TrustVault administrator.</p>
+  </form>
+</section>
+{% endblock %}

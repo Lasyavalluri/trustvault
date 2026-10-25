@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} | TrustVault{% endblock %}
+{% block content %}
+<section class="panel error-card"><p class="eyebrow">Request {{ status_code }}</p><h1>{{ title }}</h1><p class="muted">The request could not be completed. If you believe you should have access, contact the document owner.</p><a class="button button-secondary" href="{% if user %}/documents{% else %}/login{% endif %}">Return to TrustVault</a></section>
+{% endblock %}

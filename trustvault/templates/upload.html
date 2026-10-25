@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Upload document | TrustVault{% endblock %}
+{% block content %}
+<div class="back-link"><a href="/documents">&lt; Back to documents</a></div>
+<section class="form-layout">
+  <div><p class="eyebrow">Add to your workspace</p><h1>Upload a document</h1><p class="muted">Your file stays private until you grant someone access.</p>
+    <div class="security-note"><strong>Protected storage</strong><p>Files are stored outside the public web folder and every download is checked against current access.</p></div>
+  </div>
+  <form class="panel form-card" method="post" action="/documents" enctype="multipart/form-data">
+    {% if error %}<p class="alert" role="alert">{{ error }}</p>{% endif %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Document name<input name="name" required maxlength="180" placeholder="e.g. Vendor agreement"></label>
+    <label>Domain
+      <select name="domain_id" required>
+        {% for domain in domains %}<option value="{{ domain.id }}">{{ domain.name }}</option>{% endfor %}
+      </select>
+      <small>Domains are created by an administrator.</small>
+    </label>
+    <label>Category<input name="category" maxlength="80" placeholder="e.g. Agreement"></label>
+    {% if user.role == "admin" %}
+    <label class="check-row"><input type="checkbox" name="use_gemini" value="true">
+      <span>Generate a summary and domain suggestion with Google Gemini</span></label>
+    <p class="muted">This sends the uploaded file to Google for processing. Use only if the document is approved for external processing. The suggestion never grants access.</p>
+    {% endif %}
+    <label>Choose file<input type="file" name="file" required accept=".pdf,.docx,.xlsx,.png,.jpg,.jpeg"><small>PDF, DOCX, XLSX, PNG, JPEG. Maximum 10 MB.</small></label>
+    <button class="button button-primary button-wide" type="submit">Upload securely</button>
+  </form>
+</section>
+{% endblock %}

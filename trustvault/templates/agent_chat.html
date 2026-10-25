@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Admin access agent | TrustVault{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div><p class="eyebrow">Administrator workspace</p><h1>Access agent</h1><p class="muted">Ask to grant or revoke a document permission. The local assistant resolves exact account and document matches and always asks you to confirm before changing access.</p></div>
+</section>
+<section class="agent-chat panel">
+  <div class="agent-chat-header">
+    <span class="agent-avatar">A</span>
+    <div><strong>TrustVault access assistant</strong><small>Local rules · Admin only · Actions are audited</small></div>
+  </div>
+  <div class="agent-chat-body">
+    {% if messages %}
+      {% for item in messages %}
+      <div class="chat-message chat-{{ item.role }}"><span class="chat-role">{% if item.role == "user" %}You{% else %}Agent{% endif %}</span><p>{{ item.text }}</p></div>
+      {% endfor %}
+    {% else %}
+      <div class="chat-message chat-assistant"><span class="chat-role">Agent</span><p>I can prepare a document access change for your review. I don't use Gemini or send document contents anywhere for access decisions.</p>
+        <p>Examples:</p>
+        <ul>
+          <li>grant read access to user1@example.test for document Sample supplier agreement</li>
+          <li>grant edit access to user2@example.test for document Sample supplier agreement</li>
+          <li>revoke access for user1@example.test from document Sample supplier agreement</li>
+        </ul>
+        <p>Use an exact document name or its ID. I will show a confirmation step before the change takes effect.</p>
+      </div>
+    {% endif %}
+    {% if notice %}<p class="agent-notice" role="status">{{ notice }}</p>{% endif %}
+    {% if pending %}
+    <section class="agent-confirm">
+      <p class="eyebrow">Review before applying</p>
+      <h2>{% if pending.action == "grant" %}Grant {{ pending.permission }} access?{% else %}Revoke access?{% endif %}</h2>
+      <dl>
+        <div><dt>Document</dt><dd><a href="/documents/{{ pending.document_id }}">{{ pending.document_name }}</a></dd></div>
+        <div><dt>Account</dt><dd>{{ pending.email }}</dd></div>
+        {% if pending.permission %}<div><dt>Permission</dt><dd>{{ pending.permission }}</dd></div>{% endif %}
+      </dl>
+      <div class="inline-actions">
+        <form method="post" action="/admin/agent-chat/{{ pending.token }}/confirm"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button button-primary" type="submit">Confirm change</button></form>
+        <form method="post" action="/admin/agent-chat/{{ pending.token }}/cancel"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button button-danger-outline" type="submit">Cancel</button></form>
+      </div>
+      <small>This confirmation expires in five minutes. The action is not applied unless you confirm.</small>
+    </section>
+    {% endif %}
+  </div>
+  <form class="agent-composer" method="post" action="/admin/agent-chat">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label class="visually-hidden" for="agent-message">Message the access agent</label>
+    <textarea id="agent-message" name="message" rows="3" maxlength="500" required placeholder="e.g. grant read access to user1@example.test for document Sample supplier agreement"></textarea>
+    <button class="button button-primary" type="submit">Send</button>
+  </form>
+  <p class="agent-disclaimer">The agent handles only explicit grant/revoke commands. It cannot upload, download, read file contents, or make decisions without your confirmation.</p>
+</section>
+{% endblock %}

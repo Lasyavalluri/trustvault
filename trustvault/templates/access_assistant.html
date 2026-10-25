@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Access assistant | TrustVault{% endblock %}
+{% block content %}
+<section class="page-heading"><div><p class="eyebrow">Administration</p><h1>Access assistant</h1><p class="muted">An explainable local rule suggests read-only access when a person's department exactly matches a document domain. Nothing is granted automatically.</p></div></section>
+<form class="panel form-card" method="get" action="/admin/access-assistant">
+  <label>Find an active account
+    <select name="selected_user" required>
+      <option value="">Select a user</option>
+      {% for account in users %}<option value="{{ account.id }}" {% if selected and selected.id == account.id %}selected{% endif %}>{{ account.email }} / {{ account.department or "department not set" }} / {{ account.role }}</option>{% endfor %}
+    </select>
+  </label>
+  <button class="button button-secondary" type="submit">View account</button>
+</form>
+{% if selected %}
+<section class="panel detail-card">
+  <h2>{{ selected.email }}</h2>
+  <p class="muted">Department: {{ selected.department or "not assigned" }} · Job title: {{ selected.job_title or "not assigned" }}</p>
+  <form method="post" action="/admin/access-assistant">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="selected_user" value="{{ selected.id }}">
+    <button class="button button-primary" type="submit">Generate suggestions</button>
+  </form>
+  {% if not selected.department %}<p class="alert">Set a department on the People page before requesting recommendations.</p>{% endif %}
+</section>
+<section class="panel table-panel"><div class="table-heading"><div><h2>Pending suggestions</h2><p class="muted">Review the document and rationale before making a decision.</p></div></div>
+  {% if suggestions %}<div class="table-scroll"><table><thead><tr><th>Document</th><th>Suggested permission</th><th>Why</th><th>Decision</th></tr></thead><tbody>
+    {% for suggestion in suggestions %}<tr>
+      <td><a href="/documents/{{ suggestion.document_id }}">{{ suggestion.document_name }}</a><small>{{ suggestion.domain_name }}</small></td>
+      <td>{{ suggestion.permission }}</td><td>{{ suggestion.rationale }}</td>
+      <td><div class="inline-actions">
+        <form method="post" action="/documents/{{ suggestion.document_id }}/access">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="email" value="{{ suggestion.recipient_email }}"><input type="hidden" name="permission" value="{{ suggestion.permission }}"><input type="hidden" name="suggestion_id" value="{{ suggestion.id }}">
+          <button class="button button-primary" type="submit">Approve &amp; grant</button>
+        </form>
+        <form method="post" action="/admin/access-suggestions/{{ suggestion.id }}/reject"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="button button-danger-outline" type="submit">Reject</button></form>
+      </div></td>
+    </tr>{% endfor %}
+  </tbody></table></div>{% else %}<p class="empty-inline">No pending suggestions. Set department metadata and generate recommendations.</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

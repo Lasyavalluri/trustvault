@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Confirm document metadata | TrustVault{% endblock %}
+{% block content %}
+<div class="back-link"><a href="/admin/data-lake">&lt; Back to data lake</a></div>
+<section class="form-layout">
+  <div><p class="eyebrow">Human review required</p><h1>Confirm document metadata</h1>
+    <p class="muted">Gemini suggested a different domain. Review the summary and choose the correct final metadata before the file becomes available in TrustVault.</p>
+    <div class="security-note"><strong>No access was granted</strong><p>Gemini cannot grant permissions. This upload remains private and expires after 15 minutes unless you confirm it.</p></div>
+  </div>
+  <section class="panel form-card">
+    <p class="alert" role="alert">Selected domain: <strong>{{ selected_domain }}</strong>. Gemini suggested: <strong>{{ suggested_domain }}</strong>.</p>
+    <h2>Suggested summary</h2><p class="summary-text">{{ summary }}</p>
+    <form method="post" action="/admin/pending-uploads/{{ token }}/confirm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>Final domain<select name="domain_id" required>{% for domain in domains %}<option value="{{ domain.id }}" {% if domain.name|lower == selected_domain|lower %}selected{% endif %}>{{ domain.name }}</option>{% endfor %}</select></label>
+      <label>Category<input name="category" required maxlength="80" value="{{ suggested_category or category }}"></label>
+      <button class="button button-primary button-wide" type="submit">Confirm and store document</button>
+    </form>
+    <form method="post" action="/admin/pending-uploads/{{ token }}/cancel">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="button button-danger-outline button-wide" type="submit">Cancel upload</button>
+    </form>
+  </section>
+</section>
+{% endblock %}

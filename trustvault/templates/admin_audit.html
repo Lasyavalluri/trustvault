@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Activity | TrustVault{% endblock %}
+{% block content %}
+<section class="page-heading"><div><p class="eyebrow">Administration</p><h1>Activity trail</h1><p class="muted">Security events and document access. This view does not grant document access.</p></div></section>
+{% if verified %}<div class="integrity-banner integrity-good"><span class="integrity-icon">OK</span><span><strong>Audit chain verified</strong><small>All recorded events pass the integrity check.</small></span></div>
+{% else %}<div class="integrity-banner integrity-bad"><span class="integrity-icon">!</span><span><strong>Audit integrity check failed</strong><small>Problem at event {{ broken_sequence }}. Investigate immediately.</small></span></div>{% endif %}
+<form class="panel filters audit-filters" method="get" action="/admin/audit">
+  <label>Actor email<input type="search" name="actor" value="{{ filters.actor }}"></label>
+  <label>Action<input name="action" value="{{ filters.action }}" placeholder="e.g. download"></label>
+  <label>Outcome<select name="outcome"><option value="">Any outcome</option><option value="success" {% if filters.outcome == "success" %}selected{% endif %}>Success</option><option value="denied" {% if filters.outcome == "denied" %}selected{% endif %}>Denied</option><option value="rejected" {% if filters.outcome == "rejected" %}selected{% endif %}>Rejected</option></select></label>
+  <label>Document ID<input name="document_id" value="{{ filters.document_id }}"></label>
+  <button class="button button-secondary" type="submit">Filter</button>
+</form>
+<section class="panel table-panel"><div class="table-heading"><div><h2>Recent events</h2><p class="muted">Showing up to 300 matching records</p></div></div>
+  {% if events %}<div class="table-scroll"><table><thead><tr><th>Time (UTC)</th><th>Actor</th><th>Action</th><th>Document</th><th>Outcome</th><th>Details</th></tr></thead><tbody>
+    {% for event in events %}<tr><td class="nowrap">{{ event.occurred_at }}</td><td>{{ event.actor_email or "Unauthenticated" }}</td><td><span class="event-action">{{ event.action }}</span></td><td class="id-cell">{{ event.document_id or "-" }}</td><td><span class="outcome outcome-{{ event.outcome }}">{{ event.outcome }}</span></td><td>{{ event.details_json }}</td></tr>{% endfor %}
+  </tbody></table></div>{% else %}<div class="empty-state"><h3>No events found</h3><p>There are no matching audit records.</p></div>{% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}TrustVault{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  {% if user %}
+  <header class="topbar">
+    <a class="brand" href="/dashboard"><span class="brand-mark">T</span> TrustVault</a>
+    <div class="account">
+      <span>{{ user.email }} <span class="role-pill">{{ user.role }}</span></span>
+      <form method="post" action="/logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="link-button" type="submit">Sign out</button>
+      </form>
+    </div>
+  </header>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <p class="sidebar-label">Workspace</p>
+      <nav class="sidebar-nav" aria-label="Main navigation">
+        <a class="nav-item {% if request.url.path == '/dashboard' or request.url.path == '/' %}active{% endif %}" href="/dashboard"><span class="nav-icon">D</span>Dashboard</a>
+        <a class="nav-item {% if request.url.path.startswith('/documents') and request.url.path != '/documents/new' %}active{% endif %}" href="/documents"><span class="nav-icon">F</span>Documents</a>
+        {% if user.role in ["owner", "admin"] %}
+        <a class="nav-item {% if request.url.path == '/documents/new' %}active{% endif %}" href="/documents/new"><span class="nav-icon">+</span>Upload document</a>
+        {% endif %}
+        {% if user.role == "admin" %}
+        <p class="sidebar-label sidebar-section-label">Administration</p>
+        <a class="nav-item {% if request.url.path.startswith('/admin/data-lake') %}active{% endif %}" href="/admin/data-lake"><span class="nav-icon">L</span>Data lake</a>
+        <a class="nav-item {% if request.url.path.startswith('/admin/agent-chat') %}active{% endif %}" href="/admin/agent-chat"><span class="nav-icon">C</span>Access agent chat</a>
+        <a class="nav-item {% if request.url.path.startswith('/admin/access-assistant') %}active{% endif %}" href="/admin/access-assistant"><span class="nav-icon">A</span>Suggestions</a>
+        <a class="nav-item {% if request.url.path.startswith('/admin/users') %}active{% endif %}" href="/admin/users"><span class="nav-icon">P</span>People</a>
+        <a class="nav-item {% if request.url.path.startswith('/admin/audit') %}active{% endif %}" href="/admin/audit"><span class="nav-icon">H</span>Activity &amp; audit</a>
+        {% endif %}
+      </nav>
+      <div class="sidebar-footer">
+        <span class="sidebar-avatar">{{ user.email[:1]|upper }}</span>
+        <span class="sidebar-user">{{ user.email }}<small>{{ user.role|title }}</small></span>
+      </div>
+    </aside>
+  {% endif %}
+  <div class="{% if user %}workspace-content{% endif %}">
+    <main class="main{% if not user %} main-narrow{% endif %}">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">Private by design <span>TrustVault demo</span></footer>
+  </div>
+  {% if user %}</div>{% endif %}
+</body>
+</html>
