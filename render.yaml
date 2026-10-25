@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: trustvault-demo
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash scripts/start_demo.sh
+    healthCheckPath: /health
+    envVars:
+      - key: TRUSTVAULT_ENV
+        value: production
+      - key: TRUSTVAULT_DATA_DIR
+        value: /var/data
+      - key: TRUSTVAULT_AUDIT_KEY
+        generateValue: true
+    disk:
+      name: trustvault-demo-data
+      mountPath: /var/data
+      sizeGB: 1

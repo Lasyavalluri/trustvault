@@ -91,6 +91,19 @@ python -m pytest -q
 
 The tests use isolated temporary databases, private storage, and a test-only audit key.
 
+## Public demo deployment (Render)
+
+TrustVault is a Python FastAPI application with a SQLite database and uploaded files on disk; it is not a static site. The `render.yaml` Blueprint configures a single Render web service with a persistent disk so the demo database and uploads survive restarts and deploys. Render persistent disks require a paid web service. Netlify's static hosting is not suitable for running this app unchanged.
+
+1. Push the project, including `render.yaml` and `scripts/start_demo.sh`, to GitHub.
+2. In Render, create a **Blueprint** and connect the GitHub repository. Review the paid service and disk before approving deployment.
+3. Wait for the service health check at `/health` to pass.
+4. On the first startup, the service creates demo accounts and prints their generated credentials in the Render service logs. Share those credentials with testers separately; they are not stored in Git.
+
+The seed runs only when the database file does not exist. The persistent disk retains demo accounts and uploaded files through restarts and deploys. To reset the demo, delete its data from the Render disk and restart the service; doing so permanently removes its current demo data.
+
+This deployment intentionally exposes shared administrator, owner, and viewer demo accounts to testers. Anyone with the URL and credentials can change demo users, permissions, and documents. Use only synthetic data; never upload real or confidential documents. The optional Gemini integration is not configured by this Blueprint.
+
 ## Authentication choice: OAuth 2.0 or OIDC?
 
 OAuth 2.0 by itself is an **authorization** framework; it is not a sign-in protocol. For browser login, the usual choice is **OpenID Connect (OIDC)** on top of OAuth 2.0, using Authorization Code flow with PKCE. For a real company deployment, use the company's identity provider (for example Microsoft Entra ID or Google Workspace), require MFA there, restrict sign-in to the intended organization, validate issuer/audience/state/nonce, and map a verified stable `(issuer, subject)` identity to a TrustVault account. Keep the app's server-side session and document-grant checks: successful SSO must never imply access to every document.
