@@ -91,16 +91,16 @@ python -m pytest -q
 
 The tests use isolated temporary databases, private storage, and a test-only audit key.
 
-## Public demo deployment (Render)
+## Free public demo deployment (Render)
 
-TrustVault is a Python FastAPI application with a SQLite database and uploaded files on disk; it is not a static site. The `render.yaml` Blueprint configures a single Render web service with a persistent disk so the demo database and uploads survive restarts and deploys. Render persistent disks require a paid web service. Netlify's static hosting is not suitable for running this app unchanged.
+TrustVault is a Python FastAPI application with a SQLite database and uploaded files on disk; it is not a static site. The `render.yaml` Blueprint configures a free Render web service. Netlify's static hosting is not suitable for running this app unchanged.
 
 1. Push the project, including `render.yaml` and `scripts/start_demo.sh`, to GitHub.
-2. In Render, create a **Blueprint** and connect the GitHub repository. Review the paid service and disk before approving deployment.
+2. In Render, create a **Blueprint** and connect the GitHub repository. Confirm the service uses the free plan before approving deployment.
 3. Wait for the service health check at `/health` to pass.
 4. On the first startup, the service creates demo accounts and prints their generated credentials in the Render service logs. Share those credentials with testers separately; they are not stored in Git.
 
-The seed runs only when the database file does not exist. The persistent disk retains demo accounts and uploaded files through restarts and deploys. To reset the demo, delete its data from the Render disk and restart the service; doing so permanently removes its current demo data.
+The free service has an ephemeral filesystem: demo accounts, uploaded documents, and other local data can be erased when the service sleeps, restarts, or redeploys. The startup script seeds fresh demo accounts when the database is absent, so credentials may change after a reset; retrieve the new credentials from the Render service logs. This option is for temporary testing, not durable storage.
 
 This deployment intentionally exposes shared administrator, owner, and viewer demo accounts to testers. Anyone with the URL and credentials can change demo users, permissions, and documents. Use only synthetic data; never upload real or confidential documents. The optional Gemini integration is not configured by this Blueprint.
 
